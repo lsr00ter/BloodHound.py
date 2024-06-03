@@ -26,6 +26,7 @@ import logging
 import traceback
 import codecs
 import json
+import socket
 
 from uuid import UUID
 from dns import resolver
@@ -65,9 +66,12 @@ class ADDC(ADComputer):
 
         # Convert the hostname to an IP, this prevents ldap3 from doing it
         # which doesn't use our custom nameservers
-        q = self.ad.dnsresolver.query(self.hostname, tcp=self.ad.dns_tcp)
-        for r in q:
-            ip = r.address
+        try:
+            ip = socket.gethostbyname(self.hostname)
+        except:
+            q = self.ad.dnsresolver.query(self.hostname, tcp=self.ad.dns_tcp)
+            for r in q:
+                ip = r.address
 
         ldap = self.ad.auth.getLDAPConnection(hostname=self.hostname, ip=ip,
                                               baseDN=self.ad.baseDN, protocol=protocol)
